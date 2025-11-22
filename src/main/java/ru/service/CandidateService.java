@@ -25,7 +25,6 @@ public class CandidateService {
     }
 
     public CandidateDTO create(CandidateDTO d) {
-        // простая защита на уровне сервиса (в БД у тебя ещё и unique индекс по email)
         if (repo.existsByEmail(d.getEmail())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists: " + d.getEmail());
         }
@@ -36,7 +35,6 @@ public class CandidateService {
         try {
             return toDTO(repo.save(e));
         } catch (DataIntegrityViolationException ex) {
-            // если уникальность поймалась именно БД
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists: " + d.getEmail(), ex);
         }
     }
