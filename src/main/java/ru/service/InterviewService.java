@@ -113,6 +113,11 @@ public class InterviewService {
         repo.save(i);
 
         if (success) {
+            Application app = i.getApplication();
+            app.setStatus("OFFERED");
+            app.setUpdatedAt(Instant.now());
+            appRepo.save(app);
+
             Offer o = new Offer();
             o.setApplication(i.getApplication());
             o.setStatus("SENT");

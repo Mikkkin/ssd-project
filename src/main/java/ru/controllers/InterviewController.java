@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -33,7 +34,7 @@ public class InterviewController {
     public ResponseEntity<InterviewDTO> create(@Valid @RequestBody InterviewDTO dto) {
         return new ResponseEntity<>(interviewService.create(dto), HttpStatus.CREATED);
     }
-
+   
     
     @GetMapping
     @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
@@ -52,10 +53,18 @@ public class InterviewController {
     }
 
 
+    @PostMapping("/{id}/complete")
+    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
+    public ResponseEntity<InterviewDTO> complete(@PathVariable Long id, @RequestParam(name = "success", defaultValue = "true") boolean success) {
+        return ResponseEntity.ok(interviewService.complete(id, success));
+    }
+
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         interviewService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
 }

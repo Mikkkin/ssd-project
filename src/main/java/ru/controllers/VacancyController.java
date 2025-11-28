@@ -72,4 +72,13 @@ public class VacancyController {
     public ResponseEntity<VacancyDTO> publish(@PathVariable Long id) {
         return ResponseEntity.ok(vacancyService.publish(id));
     }
+
+
+    @PostMapping("{id}/close")
+    @PreAuthorize("hasAnyRole('HR', 'ADMIN')")
+    public ResponseEntity<VacancyDTO> close(@PathVariable Long id) {
+        return ResponseEntity.ok(vacancyService.close(id));
+    }
+        
+    
 }

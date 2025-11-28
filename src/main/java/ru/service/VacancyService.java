@@ -24,11 +24,26 @@ public class VacancyService {
     }
 
     public VacancyDTO create(VacancyDTO d) {
+
         Vacancy e = toEntity(d);
         e.setId(null);
         e.setCreatedAt(Instant.now());
         e.setUpdatedAt(Instant.now());
         if (e.getStatus() == null) e.setStatus("DRAFT");
+        return toDTO(repo.save(e));
+    }
+
+    public VacancyDTO close(Long id) {
+
+        Vacancy e = repo.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vacancy " + id + " not found"));
+        
+        if ("CLOSED".equals(e.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Vacancy " + id + " is already CLOSED");
+        }
+
+        e.setStatus("CLOSED");
+        e.setUpdatedAt(Instant.now());
         return toDTO(repo.save(e));
     }
 
