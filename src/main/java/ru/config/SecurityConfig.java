@@ -10,8 +10,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import lombok.RequiredArgsConstructor;
 import ru.service.CustomUserDetailsService;
@@ -24,6 +23,7 @@ import ru.service.CustomUserDetailsService;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -40,13 +40,13 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-        var del = new CsrfTokenRequestAttributeHandler();
+        JwtAuthFilter jwtAuthFilter = new JwtAuthFilter(jwtTokenProvider);
 
         http
             .authenticationProvider(authenticationProvider())
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                .requestMatchers("/api/auth/register", "/api/auth/login", "/api/auth/refresh").permitAll()
                 
                 .requestMatchers("/api/candidates/**").hasAnyRole("CANDIDATE", "ADMIN")
                 
@@ -65,19 +65,11 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             
-            .httpBasic(basic -> basic
-                .realmName("Basic authentication")
-            )
             
-            .csrf(csrf -> csrf
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrfTokenRequestHandler(del::handle)
-                .ignoringRequestMatchers("/api/auth/register", "/api/auth/login")
-            )
+            .csrf(csrf -> csrf.disable())
             
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                .sessionFixation(sessionFixation -> sessionFixation.migrateSession())
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             
             .exceptionHandling(exception -> exception

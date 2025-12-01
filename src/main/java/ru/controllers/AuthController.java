@@ -6,14 +6,19 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import ru.DTO.LoginDTO;
+import ru.DTO.RefreshRequestDTO;
 import ru.DTO.RegisterDTO;
+import ru.DTO.TokenPairDTO;
 import ru.DTO.UserDTO;
 import ru.service.AuthService;
+import ru.service.TokenService;
 
 
 @RestController
@@ -22,6 +27,7 @@ import ru.service.AuthService;
 public class AuthController {
 
     private final AuthService authService;
+    private final TokenService tokenService;
 
     @PostMapping("/register")
     public ResponseEntity<UserDTO> register(@Valid @RequestBody RegisterDTO request) {
@@ -30,8 +36,15 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserDTO> login() {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<TokenPairDTO> login(@Valid @RequestBody LoginDTO request, @RequestHeader(value = "X-Device-Id", required = false) String deviceId) {
+        TokenPairDTO pair = tokenService.loginIssueTokens(request, deviceId);
+        return ResponseEntity.ok(pair);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenPairDTO> refresh(@Valid @RequestBody RefreshRequestDTO request) {
+        TokenPairDTO pair = tokenService.refreshTokens(request.getRefreshToken());
+        return ResponseEntity.ok(pair);
     }
 
     @PostMapping("/{userId}/assign-role/{roleName}")
