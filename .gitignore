@@ -48,3 +48,9 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### certs ###
+*.jks
+*.crt
+src/main/resources/*.jks
+src/main/resources/*.crt
